@@ -590,6 +590,7 @@
 												</form>
 												
 											<!-- </div> -->
+											<div id="pagination_link"></div>
 										<div id="showAllStudent">
 											<div id="UpdateData"></div>
 											<div id="deleStudentMessage"></div>
@@ -671,53 +672,33 @@
 	$(document).ready(function(){
 		$('#updateStudentDetails').hide();
 		$('#showAllStudent').hide();
+		$('#pagination_link').hide()
 		$('#allstudent').click(function(){
 			// $('#updateStudentDetails').hide();
 			$('#updateStudentDetails').hide();
 			$('#showAllStudent').show();
+			$('#pagination_link').show();
 			$('#dashboardContent').hide();
 			$('#studentdetailsForm').hide();
 
-			showAllStudentDetailes();			
+			showAllStudentDetailes(1);			
 			
 		});
 
-		// $(document).on('load','#sduTab', function(){
+		$(document).on("click", ".pagination li a", function(event){
+			  event.preventDefault();
+			  var page = $(this).data("ci-pagination-page");
+			  showAllStudentDetailes(page);
+			 });
 
-		// 	loadPagination(0);
-		// 	function loadPagination(pagno){
-		// 	       $.ajax({
-		// 	         url: "<?php //echo base_url(); ?>FileUploadController/loadRecord"+pagno,
-		// 	         method: "get",
-		// 	         dataType: "json",
-		// 	         success: function(response){
-		// 	            $('#pagination').html(response.pagination);
-		// 	            //createTable(response.result,response.row);
-		// 	         }
-		// 	       });
-  //    		}
-
-		// });
-
-		
-
-
-		function showAllStudentDetailes(){
+		function showAllStudentDetailes(page){
 				$.ajax({
-					url:"<?php echo base_url(); ?>FileUploadController/showAllRecords",
-					method:"post",
+					url:"<?php echo base_url(); ?>FileUploadController/showAllRecords/"+page,
+					method:"get",
 					dataType:"json",
 					success:function(data){
-						var html='';
-						var i;
-						html +='<table id="sduTab" class="table" style="background-color:blanchedalmond;margin-left:-150px;margin-top:89PX;"><tr><th>Student&nbsp;Id</th><th>Image</th><th>Name</th><th>Class</th><th>Father&nbsp;name</th><th>Parent&nbsp;contact</th><th>Student&nbsp;contact</th><th>Address</th><th>delete</th><th>Edit</th></tr>';
-						for(i=0; i<data.length; i++)
-						{
-							html +='<tr><td>'+data[i].sId+'</td><td><img src="<?php  echo base_url();?>upload/'+data[i].img+'" width="90" height="100"></td><td>'+data[i].sname+'</td><td>'+data[i].studentClass+'</td><td>'+data[i].fname+'</td><td>'+data[i].pcontact+'</td><td>'+data[i].scontact+'</td><td>'+data[i].address+'</td><td><a href="#" class="delete" id="'+data[i].sId+'"><i class="fa fa-trash-o" style="font-size:24px"></i></a></td><td><a href="#" class="update" id="'+data[i].sId+'"><i class="fa fa-edit" style="font-size:24px"></i></a></td></tr>';
-						}
-
-						html +='</table';
-						$('#showAllStudent').html(html);
+						$('#showAllStudent').html(data.student_records);
+						$('#pagination_link').html(data.pagination_link);
 					}
 				});
 			}
@@ -725,6 +706,7 @@
 			$(document).on('click','.update', function(){
 				$('#updateStudentDetails').show();
 				$('#showAllStudent').hide();
+				$('#pagination_link').hide();
 
 				var updateId = $(this).attr("id");
 				$.ajax({
@@ -838,6 +820,7 @@
 
 		$('#studentdetailsForm').hide();
 		$('#addstudent').click(function(){
+			$('#pagination_link').hide();
 			$('#updateStudentDetails').hide();
 			$('#showAllStudent').hide();
 			$('#dashboardContent').hide();

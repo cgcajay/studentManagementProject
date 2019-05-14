@@ -5,7 +5,7 @@ class FileUploadController extends CI_Controller{
 public function __construct(){
 	parent::__construct();
 	$this->load->library('pagination');
-       $this->load->database();
+
 }
 
 public function index(){
@@ -204,12 +204,51 @@ public function uploadImage(){
 
 	public function showAllRecords(){
 
+		// $this->load->model("FileUploadModel");
+		// $showData = $this->FileUploadModel->showStudentDetails();
+		// if($showData)
+		// {
+		// 	echo json_encode($showData);
+		// }
+
+
 		$this->load->model("FileUploadModel");
-		$showData = $this->FileUploadModel->showStudentDetails();
-		if($showData)
-		{
-			echo json_encode($showData);
-		}
+		  $this->load->library("pagination");
+		  $config = array();
+		  $config["base_url"] = "#";
+		  $config["total_rows"] = $this->FileUploadModel->count_all();
+		  $config["per_page"] = 5;
+		  $config["uri_segment"] = 3;
+		  $config["use_page_numbers"] = TRUE;
+		  $config["full_tag_open"] = '<ul class="pagination">';
+		  $config["full_tag_close"] = '</ul>';
+		  $config["first_tag_open"] = '<li>';
+		  $config["first_tag_close"] = '</li>';
+		  $config["last_tag_open"] = '<li>';
+		  $config["last_tag_close"] = '</li>';
+		  $config['next_link'] = '&gt;';
+		  $config["next_tag_open"] = '<li>';
+		  $config["next_tag_close"] = '</li>';
+		  $config["prev_link"] = "&lt;";
+		  $config["prev_tag_open"] = "<li>";
+		  $config["prev_tag_close"] = "</li>";
+		  $config["cur_tag_open"] = "<li class='active'><a href='#'>";
+		  $config["cur_tag_close"] = "</a></li>";
+		  $config["num_tag_open"] = "<li>";
+		  $config["num_tag_close"] = "</li>";
+		  $config["num_links"] = 1;
+		  $this->pagination->initialize($config);
+		  $page = $this->uri->segment(3);
+		  $start = ($page - 1) * $config["per_page"];
+
+		  $output = array(
+		   'pagination_link'  => $this->pagination->create_links(),
+		   'student_records'   => $this->FileUploadModel->showStudentDetails($config["per_page"], $start)
+		  );
+		  echo json_encode($output);
+
+
+
 	}
 
 	public function deleteStudent(){
@@ -249,47 +288,46 @@ public function uploadImage(){
 	}
 
 
-	public function loadRecord($rowno=0){
+	// public function loadRecord($rowno=0){
  
-        $rowperpage = 2;
+ //        $rowperpage = 2;
  
-        if($rowno != 0){
-          $rowno = ($rowno-1) * $rowperpage;
-        }
+ //        if($rowno != 0){
+ //          $rowno = ($rowno-1) * $rowperpage;
+ //        }
   
-        $allcount = $this->db->count_all('addStudent');
+ //        $allcount = $this->db->count_all('addStudent');
  
-        $this->db->limit($rowperpage, $rowno);
-        $users_record = $this->db->get('addStudent')->result_array();
+ //        $this->db->limit($rowperpage, $rowno);
+ //        $users_record = $this->db->get('addStudent')->result_array();
   
-        $config['base_url'] = base_url().'FileUploadController/loadRecord';
-        $config['use_page_numbers'] = TRUE;
-        $config['total_rows'] = $allcount;
-        $config['per_page'] = $rowperpage;
+ //        $config['base_url'] = base_url().'FileUploadController/loadRecord';
+ //        $config['use_page_numbers'] = TRUE;
+ //        $config['total_rows'] = $allcount;
+ //        $config['per_page'] = $rowperpage;
  
-        $config['full_tag_open']    = '<div class="pagging text-center"><nav><ul class="pagination">';
-        $config['full_tag_close']   = '</ul></nav></div>';
-        $config['num_tag_open']     = '<li class="page-item"><span class="page-link">';
-        $config['num_tag_close']    = '</span></li>';
-        $config['cur_tag_open']     = '<li class="page-item active"><span class="page-link">';
-        $config['cur_tag_close']    = '<span class="sr-only">(current)</span></span></li>';
-        $config['next_tag_open']    = '<li class="page-item"><span class="page-link">';
-        $config['next_tag_close']  = '<span aria-hidden="true"></span></span></li>';
-        $config['prev_tag_open']    = '<li class="page-item"><span class="page-link">';
-        $config['prev_tag_close']  = '</span></li>';
-        $config['first_tag_open']   = '<li class="page-item"><span class="page-link">';
-        $config['first_tag_close'] = '</span></li>';
-        $config['last_tag_open']    = '<li class="page-item"><span class="page-link">';
-        $config['last_tag_close']  = '</span></li>';
+ //        $config['full_tag_open']    = '<div class="pagging text-center"><nav><ul class="pagination">';
+ //        $config['full_tag_close']   = '</ul></nav></div>';
+ //        $config['num_tag_open']     = '<li class="page-item"><span class="page-link">';
+ //        $config['num_tag_close']    = '</span></li>';
+ //        $config['cur_tag_open']     = '<li class="page-item active"><span class="page-link">';
+ //        $config['cur_tag_close']    = '<span class="sr-only">(current)</span></span></li>';
+ //        $config['next_tag_open']    = '<li class="page-item"><span class="page-link">';
+ //        $config['next_tag_close']  = '<span aria-hidden="true"></span></span></li>';
+ //        $config['prev_tag_open']    = '<li class="page-item"><span class="page-link">';
+ //        $config['prev_tag_close']  = '</span></li>';
+ //        $config['first_tag_open']   = '<li class="page-item"><span class="page-link">';
+ //        $config['first_tag_close'] = '</span></li>';
+ //        $config['last_tag_open']    = '<li class="page-item"><span class="page-link">';
+ //        $config['last_tag_close']  = '</span></li>';
  
-        $this->pagination->initialize($config);
+ //        $this->pagination->initialize($config);
  
-        $data['pagination'] = $this->pagination->create_links();
-        $data['result'] = $users_record;
-        $data['row'] = $rowno;
- 
-        echo json_encode($data);
-  }
+ //        $data['pagination'] = $this->pagination->create_links();
+ //        $data['result'] = $users_record;
+ //        $data['row'] = $rowno; 
+ //        echo json_encode($data);
+ //  }
 
 
 }

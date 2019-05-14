@@ -32,6 +32,13 @@ public function imageupload($data,$studetnIdMatch)
 	
 }
 
+	public function count_all()
+		 {
+		  $query = $this->db->get("addStudent");
+		  return $query->num_rows();
+		 }
+
+
 public function signUserId($username, $password){
 
 	$this->db->where('email',$username);
@@ -129,11 +136,23 @@ public function finalFeeModel($ididi){
 		return $this->db->insert_id();
 	}
 
-	public function showStudentDetails(){
+	public function showStudentDetails($limit, $start){
 
-		$this->db->where('del',0);
-		$allData = $this->db->get("addStudent");
-		return $allData->result();
+		$html ='';
+		$this->db->select("*");
+		$this->db->from("addStudent");
+		// $this->db->where('del',0);
+		$this->db->order_by("sname", "ASC");
+  		$this->db->limit($limit, $start);
+		$allData = $this->db->get();
+		$html .='<table id="sduTab" class="table" style="background-color:blanchedalmond;margin-left:-150px;margin-top:89PX;"><tr><th>Student&nbsp;Id</th><th>Image</th><th>Name</th><th>Class</th><th>Father&nbsp;name</th><th>Parent&nbsp;contact</th><th>Student&nbsp;contact</th><th>Address</th><th>delete</th><th>Edit</th></tr>';
+		foreach($allData->result() as $result)
+		{
+			$html .='<tr><td>'.$result->sId.'</td><td><img src="'.base_url().'upload/'.$result->img.'"></td><td>'.$result->sname.'</td><td>'.$result->studentClass.'</td><td>'.$result->fname.'</td><td>'.$result->pcontact.'</td><td>'.$result->scontact.'</td><td>'.$result->address.'</td><td><a href="#" class="delete" id="'.$result->sId.'"><i class="fa fa-trash-o" style="font-size:24px"></i></a></td><td><a href="#" class="update" id="'.$result->sId.'"><i class="fa fa-edit" style="font-size:24px"></i></a></td></tr>';
+		}
+		$html .= '</table>';
+		return $html;
+		
 	}
 
 	public function deleteStudenId($deleStudentid){
