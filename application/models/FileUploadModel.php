@@ -38,6 +38,40 @@ public function imageupload($data,$studetnIdMatch)
 		  return $query->num_rows();
 		 }
 
+	public function count_all_student_fee(){
+
+		$query = $this->db->get("feeStructure");
+		return $query->num_rows();
+	}
+
+	public function showStudentFee($limit, $start){
+		$this->db->select("*");
+		$this->db->from("feeStructure");
+		$this->db->order_by("s_id", "ASC");
+		$this->db->limit($limit, $start);
+		$feeresults = $this->db->get();
+		$html ='';
+		$html .='<table class="table" style="background-color:blanchedalmond;margin-left:-150px;margin-top:-19PX;"><tr>
+							<th>S.No</th>
+							<th>StudentId</th>
+							<th>Amount</th>
+							<th>MobileNo</th>
+						</tr>';
+		foreach($feeresults->result() as $res)
+		{
+			$html .='<tr>
+						<td>'.$res->id.'</td>
+						<td>'.$res->s_id.'</td>
+						<td>'.$res->amount.'</td>
+						<td>'.$res->mobile.'</td>
+					</tr>';
+		}
+
+		$html .='</table>';
+
+		return $html;
+
+	}
 
 public function signUserId($username, $password){
 
@@ -60,25 +94,29 @@ public function signUserId($username, $password){
 
 public function studentFeeModel($studentId, $studentData){
 
-		$this->db->insert('feeStructure',$studentData);
-		$this->db->where('sId', $studentId);
-		$returnstudetnData = $this->db->get('feeStructure');
-		if($returnstudetnData->num_rows()>0)
+		$insetId = $this->db->insert('feeStructure',$studentData);
+		if($insetId)
 		{
-			return $aaaaa = $returnstudetnData->result();
-			
+			$this->db->where('s_id', $studentId);
+			$returnstudetnData = $this->db->get('feeStructure');
+			if($returnstudetnData->num_rows()>0)
+			{
+				return $returnstudetnData->result();
+				
+			}
+			else
+			{
+				return false;
+			}
 		}
-		else
-		{
-			return false;
-		}
+		
 	
 }
 
 public function finalFeeModel($ididi){
 
 	$this->db->select('amount');
-	$this->db->where('sId', $ididi);
+	$this->db->where('s_id', $ididi);
 	$studentFee = $this->db->get('feeStructure');
 	if($studentFee->num_rows()>0)
 	{
@@ -92,7 +130,7 @@ public function finalFeeModel($ididi){
 
 	public function resetPassModel($sid,$oldpass,$password){
 
-		$this->db->where('id',$sid);
+		$this->db->where('s_id',$sid);
 		$reData = $this->db->get('testing');
 		if($reData->num_rows()>0)
 		{
@@ -141,14 +179,14 @@ public function finalFeeModel($ididi){
 		$html ='';
 		$this->db->select("*");
 		$this->db->from("addStudent");
-		// $this->db->where('del',0);
+		$this->db->where('del',0);
 		$this->db->order_by("sname", "ASC");
   		$this->db->limit($limit, $start);
 		$allData = $this->db->get();
-		$html .='<table id="sduTab" class="table" style="background-color:blanchedalmond;margin-left:-150px;margin-top:89PX;"><tr><th>Student&nbsp;Id</th><th>Image</th><th>Name</th><th>Class</th><th>Father&nbsp;name</th><th>Parent&nbsp;contact</th><th>Student&nbsp;contact</th><th>Address</th><th>delete</th><th>Edit</th></tr>';
+		$html .='<table id="sduTab" class="table" style="background-color:blanchedalmond;margin-left:-150px;margin-top:-19PX;"><tr><th>Student&nbsp;Id</th><th>Image</th><th>Name</th><th>Class</th><th>Father&nbsp;name</th><th>Parent&nbsp;contact</th><th>Student&nbsp;contact</th><th>Address</th><th>delete</th><th>Edit</th></tr>';
 		foreach($allData->result() as $result)
 		{
-			$html .='<tr><td>'.$result->sId.'</td><td><img src="'.base_url().'upload/'.$result->img.'"></td><td>'.$result->sname.'</td><td>'.$result->studentClass.'</td><td>'.$result->fname.'</td><td>'.$result->pcontact.'</td><td>'.$result->scontact.'</td><td>'.$result->address.'</td><td><a href="#" class="delete" id="'.$result->sId.'"><i class="fa fa-trash-o" style="font-size:24px"></i></a></td><td><a href="#" class="update" id="'.$result->sId.'"><i class="fa fa-edit" style="font-size:24px"></i></a></td></tr>';
+			$html .='<tr><td>'.$result->sId.'</td><td><img src="'.base_url().'upload/'.$result->img.'" width="70" height="80"></td><td>'.$result->sname.'</td><td>'.$result->studentClass.'</td><td>'.$result->fname.'</td><td>'.$result->pcontact.'</td><td>'.$result->scontact.'</td><td>'.$result->address.'</td><td><a href="#" class="delete" id="'.$result->sId.'"><i class="fa fa-trash-o" style="font-size:24px"></i></a></td><td><a href="#" class="update" id="'.$result->sId.'"><i class="fa fa-edit" style="font-size:24px"></i></a></td></tr>';
 		}
 		$html .= '</table>';
 		return $html;
@@ -181,6 +219,35 @@ public function finalFeeModel($ididi){
 		else
 		{
 			return "Data has not updated!";
+		}
+	}
+
+	public function insertQuery($data){
+		$this->db->insert('query',$data);
+		return $this->db->insert_id();
+	}
+
+	public function resultQuery($sId){
+		$this->db->where('studetnId', $sId);
+		$qery = $this->db->get("query");
+		if($qery->num_rows()>0)
+		{
+			$table = '';
+			$table .='<table class="table table-bordered" style="margin-top: 46px;"><tr>
+								<th>Query No.</th>
+								<th>Query</th>
+								<th>Admin Reply</th>
+							</tr>';
+			foreach($qery->result() as $results)
+			{
+				$table .='<tr><td>'.$results->id.'</td>
+						<td>'.$results->query.'</td>
+						<td></td>
+						</tr>';
+			}
+
+			$table .='</table>';
+			return $table;
 		}
 	}
 	

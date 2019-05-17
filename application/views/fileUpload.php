@@ -3,7 +3,8 @@
 <head>
 	<title>Submit form data with image in codeigniter using Ajax, jQuery</title>
 	 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" /> 
-	 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+	 <!-- jQuery library -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
 	 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 </head>
@@ -30,7 +31,7 @@
                         <h3 style="font-size: 15px;"><?php
 						 echo $result->name.'<br>';
 						 echo "Student Id:&nbsp;";
-						 echo $result->id;
+						 echo $result->StudentId;
 						  ?></h3>
 						
 						<!-- DropDown list  -->
@@ -39,6 +40,7 @@
 						<div><a href="#student" id="srecord" style="text-decoration: none;">Student Record</a></div>
 						<div><a href="#attendence" id="sattendence" style="text-decoration: none;">Attendence</a></div>
 						<div><a href="#feeStructure" id="sfeeStructure" style="text-decoration: none;">Student Fee Structure</a></div>
+						<div><a href="#feeStructure" id="anyQuery" style="text-decoration: none;">Ask Question</a></div>
 						<div><a href="#Reset" id="resetpassword" style="text-decoration: none;">Reset Passwprd</a></div>
 						<div><a href="<?php echo base_url(); ?>FileUploadController/logoutUser" id="logout" style="text-decoration: none;">Logout</a></div>
 						<!-- End DropDown list -->
@@ -92,6 +94,30 @@
 						</div>
 
 						<!-- End Personal Information -->
+
+
+						<!-- Submit Query to admin -->
+							<div id="askToAdmin">
+								<div class="row">
+									<div class="col-sm-6" style="margin-top: 89px;">
+										<div id="queryasuccssMessage" style="margin-left: 16px;"></div>
+										<div class="form-group">
+											<input type="hidden" name="qId" id="qId" value="<?php echo $result->StudentId; ?>" class="form-control">
+										</div>
+										<div class="form-group">
+											<span style="font-size: 21px;font-family: sans-serif;">Enter Your Query:</span><textarea class="form-control" id="queryMessage" cols="6" rows="7"></textarea>
+										</div>
+										<button type="button" id="qSubmitbutton" class="btn btn-success">Submit Query</button>
+									</div>
+									<div class="col-sm-6" style="margin-top: 89px;">
+										<div id="submittedQueryId"></div>
+									</div>
+									
+								</div>
+							</div>
+						<!-- End Query Section -->
+
+
 
 						<!-- Student Semester Record -->
 						<div id="studentSemesterRecord">
@@ -425,7 +451,7 @@
 										</tr>
 										<tr>
 											<td>5</td>
-											<td><span id="submitStudentFeeeeee"></span><a href="#submitfee" id="submitStudentFee">Submit</a>
+											<td><span id="submitStudentFeeeeee"></span><a href="#submitfee" id="submitStudentFee" style="text-decoration: none;">Submit</a>
 																			
 											</td>
 										</tr>
@@ -437,7 +463,7 @@
 										
 											<div class="form-group">
 												<label style="font-style: italic;">Enter Student Id</label>
-												<input type="text" name="sId" id="sId" value="<?php echo $result->id; ?>" class="form-control" readonly>
+												<input type="text" name="sId" id="sId" value="<?php echo $result->StudentId; ?>" class="form-control" readonly>
 											</div>
 											<div class="form-group">
 												<label style="font-style: italic;">Enter Semester</label>
@@ -590,13 +616,20 @@
 												</form>
 												
 											<!-- </div> -->
-											<div id="pagination_link"></div>
+											<div id="pagination_link" style="margin-left: 72%;"></div>
 										<div id="showAllStudent">
 											<div id="UpdateData"></div>
 											<div id="deleStudentMessage"></div>
 										</div>
 
 								<!-- End Show All Student -->
+
+								<!-- Student Fee structure -->
+									<div id="studentFeeStructure">
+										<div id="feepagination" style="margin-left: 67%;"></div>
+										<div id="showStudentFeeSubmited"></div>
+									</div>
+								<!-- End Student fee structure -->
 								</div>
 								
 							</div>
@@ -670,9 +703,54 @@
 	
 <script type="text/javascript">
 	$(document).ready(function(){
+
+
+
+		$('#qSubmitbutton').click(function(){
+			var qId = $('#qId').val();
+			var queryMessage = $('#queryMessage').val();
+			$.ajax({
+				url:"<?php echo base_url(); ?>FileUploadController/submitQuery",
+				method:"post",
+				data:{qId:qId,queryMessage:queryMessage},
+				success:function(data){
+					$('#queryasuccssMessage').html(data);
+					$('#queryMessage').val("");
+					submitedQuery();
+				}
+			});
+		});
+
+		$('#fee').click(function(){
+			$('#showStudentFeeSubmited').show();
+			$('#feepagination').show();
+			$('#studentFeeStructure').show();
+			$('#updateStudentDetails').hide();
+			$('#showAllStudent').hide();
+			$('#pagination_link').hide();
+			$('#dashboardContent').hide();
+			$('#studentdetailsForm').hide();
+			showStudentFee(1);
+		});
+
+		
+		function showStudentFee(page){
+			$.ajax({
+				url:"<?php echo base_url(); ?>FileUploadController/showStudentFeeSubmitted/"+page,
+				method:"get",
+				dataType:"json",
+				success:function(data){
+					$('#feepagination').html(data.feePagination_link);
+					$('#showStudentFeeSubmited').html(data.student_fee);
+				}
+			});
+		}
+		$('#showStudentFeeSubmited').hide();
+		$('#feepagination').hide();
+		$('#studentFeeStructure').hide();
 		$('#updateStudentDetails').hide();
 		$('#showAllStudent').hide();
-		$('#pagination_link').hide()
+		$('#pagination_link').hide();
 		$('#allstudent').click(function(){
 			// $('#updateStudentDetails').hide();
 			$('#updateStudentDetails').hide();
@@ -680,6 +758,7 @@
 			$('#pagination_link').show();
 			$('#dashboardContent').hide();
 			$('#studentdetailsForm').hide();
+			$('#studentFeeStructure').hide();
 
 			showAllStudentDetailes(1);			
 			
@@ -689,6 +768,7 @@
 			  event.preventDefault();
 			  var page = $(this).data("ci-pagination-page");
 			  showAllStudentDetailes(page);
+			  showStudentFee(page);
 			 });
 
 		function showAllStudentDetailes(page){
@@ -707,6 +787,7 @@
 				$('#updateStudentDetails').show();
 				$('#showAllStudent').hide();
 				$('#pagination_link').hide();
+				$('#studentFeeStructure').hide();
 
 				var updateId = $(this).attr("id");
 				$.ajax({
@@ -740,8 +821,11 @@
 						success:function(data){
 							showAllStudentDetailes();
 							$('#updateStudentDetails').hide();
+							//$('#showAllStudent').show();
 							$('#showAllStudent').show();
+							$('#pagination_link').show();
 							$('#UpdateData').html(data);
+							showAllStudentDetailes(1);
 
 						}
 					});
@@ -760,7 +844,8 @@
 					data:{deletI:deletI},
 					success:function(data){
 						$('#UpdateData').html(data);
-						showAllStudentDetailes();
+						//showAllStudentDetailes();
+						showAllStudentDetailes(1);
 					}
 				}); 
 			}
@@ -803,7 +888,7 @@
 						{
 							$('#studentAddError').addClass("alert alert-success");
 						}
-						$('#studentAddError').text(data);
+						$('#studentAddError').html(data);
 						$('#submitstudentDetails')[0].reset();
 					}
 				});
@@ -825,6 +910,9 @@
 			$('#showAllStudent').hide();
 			$('#dashboardContent').hide();
 			$('#studentdetailsForm').show();
+			$('#studentFeeStructure').hide();
+			$('#showStudentFeeSubmited').hide();
+			$('#feepagination').hide();
 		});
 		$('#adminlogin').click(function(){
 			var adminusername = $('#adminusername').val();
@@ -952,6 +1040,7 @@
 		});
 
 		$('#resetpassword').click(function(){
+			$('#askToAdmin').hide();
 			$('#resetpasswordForm').show();
 			$('#submitFee').hide();
 			$('#feeStructure').hide();
@@ -960,6 +1049,8 @@
 			$('#studentSemesterRecord').hide();
 			$('#dashboardContent').hide();
 		});
+
+
 		feeStructureData();
 		function feeStructureData(){
 			var sid = $('#sId').val();
@@ -992,7 +1083,7 @@
 			var sem = $('#sem').val();
 			var mob = $('#mob').val();
 			var amount = $('#amount').val();
-			if(mob !='' && amount == 85000)
+			if(mob !='' && amount != '')
 			{
 				$.ajax({
 					url:"<?php echo base_url(); ?>FileUploadController/studentFeeSubmit",
@@ -1009,7 +1100,7 @@
 						feeResult +='<table class="table table-bordered"><tr><th>Name</th><th>Student&nbsp;Id</th><th>Semester</th><th>Amount</th><th>Mobile</th></tr>';
 						for(i=0; i<data.length; i++)
 						{
-							feeResult +='<tr><td></td><td>'+data[i].sId+'</td><td>'+data[i].sem5+'</td><td>'+data[i].amount+'</td><td>'+data[i].mobile+'</td><tr>';
+							feeResult +='<tr><td></td><td>'+data[i].s_id+'</td><td>'+data[i].sem5+'</td><td>'+data[i].amount+'</td><td>'+data[i].mobile+'</td><tr>';
 							$('#submitStudentFeeeeee').text(data[i].amount);
 						}
 						feeResult +='</table>';
@@ -1025,6 +1116,7 @@
 			    return false;
 			}
 		});
+		$('#askToAdmin').hide();
 		$('#resetpasswordForm').hide();
 		$('#submitFee').hide();
 		$('#feeStructure').hide();
@@ -1040,7 +1132,36 @@
 			$('#ShowFeeSubmitForm').show();
 		});
 
+		$('#askToAdmin').hide();
+
+		$('#anyQuery').click(function(){
+			$('#askToAdmin').show();
+			$("#ShowFeeSubmitForm").hide();
+			$('#dashboardContent').hide();
+			$('#studentSemesterRecord').hide();
+			$('#spInformation').hide();
+			$('#attendence').hide();
+			$('#feeStructure').hide();
+			$('#resetpasswordForm').hide();
+			submitedQuery();
+		});
+
+		function submitedQuery(){
+			var sId = $('#qId').val();
+
+			$.ajax({
+				url:"<?php echo base_url(); ?>FileUploadController/queryResults",
+				method:"post",
+				data:{sId:sId},
+				dataType:"json",
+				success:function(data){
+					$('#submittedQueryId').html(data.queryResults);
+				}
+			});
+		}
+
 		$('#sfeeStructure').on('click', function(){
+			$('#askToAdmin').hide();
 			$("#ShowFeeSubmitForm").hide();
 			$('#dashboardContent').hide();
 			$('#studentSemesterRecord').hide();
@@ -1051,13 +1172,16 @@
 		});
 
 		$('#sattendence').on('click', function(){
+			$('#askToAdmin').hide();
 			$('#feeStructure').hide();
 			$('#studentSemesterRecord').hide();
 			$('#dashboardContent').hide();
 			$('#attendence').show();
 			$('#resetpasswordForm').hide();
+			$('#spInformation').hide();
 		});
 		$('#personoalInformation').click(function(){
+			$('#askToAdmin').hide();
 			$('#feeStructure').hide();
 			$('#attendence').hide();
 			$('#studentSemesterRecord').hide();
@@ -1071,6 +1195,7 @@
 		});
 
 		$('#srecord').on('click', function(){
+			$('#askToAdmin').hide();
 			$('#hideResultData').hide();
 			$('#resetpasswordForm').hide();
 			$('#feeStructure').hide();

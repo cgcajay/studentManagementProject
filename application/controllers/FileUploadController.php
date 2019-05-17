@@ -37,7 +37,8 @@ public function uploadImage(){
 				$this->upload->do_upload("file_img");
 				$im_name = $this->upload->data();
 				$data['file_name'] = $im_name['file_name'];
-				$data['date_entered'] = date('D-m-y H:m:s');
+				DateTimeZone('kolkata');
+				$data['date_entered'] = date('Y-m-d H:i:s');
 				$this->load->model("FileUploadModel");
 				$message = $this->FileUploadModel->imageupload($data,$studetnIdMatch);
 				if($message)
@@ -100,14 +101,14 @@ public function uploadImage(){
 	public function studentFeeSubmit(){
 		  $studentId = $this->input->post("sId");
 		$studentData = array(
-			'sId'    => $this->input->post("sId") ,
+			's_id'    => $this->input->post("sId") ,
 			'sem5'   => $this->input->post("sem") ,
 			'mobile' => $this->input->post("mob") ,
 			'amount' => $this->input->post("amount") , 
 		);
 
 		$this->load->model("FileUploadModel");
-		$data = $this->FileUploadModel->studentFeeModel($studentId, $studentData);
+		$data = $this->FileUploadModel->studentFeeModel($studentId,$studentData);
 		if($data)
 		{
 			echo json_encode($data);
@@ -118,7 +119,11 @@ public function uploadImage(){
 		$ididi = $this->input->post("sid");
 		$this->load->model("FileUploadModel");
 		$feeData = $this->FileUploadModel->finalFeeModel($ididi);
-		echo json_encode($feeData);
+		if($feeData)
+		{
+			echo json_encode($feeData);
+		}
+		
 	}
 
 	public function resetUserPass(){
@@ -180,9 +185,10 @@ public function uploadImage(){
 		$fileee["upload_path"] = "./upload/";
 		$fileee["allowed_type"] = "jpg|png|jpge";
 		$this->load->library("upload",$fileee);
-		$this->upload->do_upload("simg");
-		$filename = $this->upload->data();
-		$data = array(
+		if($this->upload->do_upload("simg"))
+		{
+			$filename = $this->upload->data();
+			$data = array(
 			'sname' => $this->input->post("sname"),
 			'fname' => $this->input->post("fname"),
 			'studentClass' => $this->input->post("sclass"),
@@ -200,6 +206,13 @@ public function uploadImage(){
 		{
 			echo "Student id=".$returnid;
 		}
+		}
+		else
+		{
+			echo $this->upload->display_errors();
+			die;
+		}
+		
 	}
 
 	public function showAllRecords(){
@@ -251,6 +264,44 @@ public function uploadImage(){
 
 	}
 
+	public function showStudentFeeSubmitted(){
+		$this->load->model("FileUploadModel");
+		  $this->load->library("pagination");
+		  $config = array();
+		  $config["base_url"] = "#";
+		  $config["total_rows"] = $this->FileUploadModel->count_all_student_fee();
+		  $config["per_page"] = 5;
+		  $config["uri_segment"] = 3;
+		  $config["use_page_numbers"] = TRUE;
+		  $config["full_tag_open"] = '<ul class="pagination">';
+		  $config["full_tag_close"] = '</ul>';
+		  $config["first_tag_open"] = '<li>';
+		  $config["first_tag_close"] = '</li>';
+		  $config["last_tag_open"] = '<li>';
+		  $config["last_tag_close"] = '</li>';
+		  $config['next_link'] = '&gt;';
+		  $config["next_tag_open"] = '<li>';
+		  $config["next_tag_close"] = '</li>';
+		  $config["prev_link"] = "&lt;";
+		  $config["prev_tag_open"] = "<li>";
+		  $config["prev_tag_close"] = "</li>";
+		  $config["cur_tag_open"] = "<li class='active'><a href='#'>";
+		  $config["cur_tag_close"] = "</a></li>";
+		  $config["num_tag_open"] = "<li>";
+		  $config["num_tag_close"] = "</li>";
+		  $config["num_links"] = 1;
+		  $this->pagination->initialize($config);
+		  $page = $this->uri->segment(3);
+		  $start = ($page - 1) * $config["per_page"];
+
+		  $output = array(
+		   'feePagination_link'  => $this->pagination->create_links(),
+		   'student_fee'         => $this->FileUploadModel->showStudentFee($config["per_page"], $start)
+		  );
+		  echo json_encode($output);
+
+	}
+
 	public function deleteStudent(){
 		$deleStudentid = $this->input->post("deletI");
 		$this->load->model("FileUploadModel");
@@ -287,47 +338,38 @@ public function uploadImage(){
 
 	}
 
+	public function submitQuery(){
+		if($this->input->post("queryMessage") !='')
+		{
+			$data = array(
+				'studetnId' => $this->input->post("qId") , 
+				'query'     => $this->input->post("queryMessage"),
+			);
+			$this->load->model("FileUploadModel");
+			$insertId = $this->FileUploadModel->insertQuery($data);
+			if(!empty($insertId))
+			{
+				echo '<p class="alert alert-success">Your query has submitted successfully, Query id&nbsp;=&nbsp; '.$insertId.'</p>';
+			}
+			
+		}
+		else
+		{
+			echo '<p style="color:red;">Please write somethings</p>';
+			die;
+		}
+		
 
-	// public function loadRecord($rowno=0){
- 
- //        $rowperpage = 2;
- 
- //        if($rowno != 0){
- //          $rowno = ($rowno-1) * $rowperpage;
- //        }
-  
- //        $allcount = $this->db->count_all('addStudent');
- 
- //        $this->db->limit($rowperpage, $rowno);
- //        $users_record = $this->db->get('addStudent')->result_array();
-  
- //        $config['base_url'] = base_url().'FileUploadController/loadRecord';
- //        $config['use_page_numbers'] = TRUE;
- //        $config['total_rows'] = $allcount;
- //        $config['per_page'] = $rowperpage;
- 
- //        $config['full_tag_open']    = '<div class="pagging text-center"><nav><ul class="pagination">';
- //        $config['full_tag_close']   = '</ul></nav></div>';
- //        $config['num_tag_open']     = '<li class="page-item"><span class="page-link">';
- //        $config['num_tag_close']    = '</span></li>';
- //        $config['cur_tag_open']     = '<li class="page-item active"><span class="page-link">';
- //        $config['cur_tag_close']    = '<span class="sr-only">(current)</span></span></li>';
- //        $config['next_tag_open']    = '<li class="page-item"><span class="page-link">';
- //        $config['next_tag_close']  = '<span aria-hidden="true"></span></span></li>';
- //        $config['prev_tag_open']    = '<li class="page-item"><span class="page-link">';
- //        $config['prev_tag_close']  = '</span></li>';
- //        $config['first_tag_open']   = '<li class="page-item"><span class="page-link">';
- //        $config['first_tag_close'] = '</span></li>';
- //        $config['last_tag_open']    = '<li class="page-item"><span class="page-link">';
- //        $config['last_tag_close']  = '</span></li>';
- 
- //        $this->pagination->initialize($config);
- 
- //        $data['pagination'] = $this->pagination->create_links();
- //        $data['result'] = $users_record;
- //        $data['row'] = $rowno; 
- //        echo json_encode($data);
- //  }
+	}
+
+	public function queryResults(){
+		$sId = $this->input->post("sId");
+		$this->load->model("FileUploadModel");
+		$data["queryResults"] = $this->FileUploadModel->resultQuery($sId);
+
+		echo json_encode($data);
+	}
+
 
 
 }
